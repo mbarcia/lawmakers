@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * Lawmakers API Admin section.
+ * Notarios API Admin section.
  */
 
-function lawmakers_api_admin_callback() {
+function notarios_api_admin_callback() {
   
   $form = array();
 

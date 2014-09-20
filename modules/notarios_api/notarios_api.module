@@ -1,36 +1,36 @@
 <?php
 /**
  * @file
- * Module file for Lawmakers API
+ * Module file for Notarios API
  */
 
 // Load base class.
-module_load_include('inc', 'lawmakers_api', 'includes/lawmakers_api.base.class');
+module_load_include('inc', 'notarios_api', 'includes/notarios_api.base.class');
 
 // Load other classes.
-module_load_include('inc', 'lawmakers_api', 'includes/lawmakers_api.sunlightlabs');
+module_load_include('inc', 'notarios_api', 'includes/notarios_api.sunlightlabs');
 
 /**
  * Implements hook_menu().
  */
-function lawmakers_api_menu() {
+function notarios_api_menu() {
   $items = array();
 
-  $items['lawmakers/details/%'] = array(
-    'page callback' => 'lawmakers_api_page_callback',
+  $items['notarios/details/%'] = array(
+    'page callback' => 'notarios_api_page_callback',
     'page arguments' => array(2),
     'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/config/services/lawmakers-api'] = array(
-    'title' => t('Lawmakers API Keys'),
+  $items['admin/config/services/notarios-api'] = array(
+    'title' => t('Notarios API Keys'),
     'description' => t('Add all of the API Keys for each supported upstream API'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('lawmakers_api_admin_callback'),
+    'page arguments' => array('notarios_api_admin_callback'),
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM,
-    'file' => 'lawmakers_api.admin.inc',
+    'file' => 'notarios_api.admin.inc',
   );
 
   return $items;
@@ -39,8 +39,8 @@ function lawmakers_api_menu() {
 /**
  * Callback function for hook_menu().
  */
-function lawmakers_api_page_callback($entity_id) {
-  $node = entity_load('lawmakers', array($entity_id));
+function notarios_api_page_callback($entity_id) {
+  $node = entity_load('notarios', array($entity_id));
   $bioguide_id = $node[$entity_id]->bioguide_id;
 
   // Committee data.
@@ -48,21 +48,21 @@ function lawmakers_api_page_callback($entity_id) {
     'member_ids' => $bioguide_id,
   );
 
-  $committees_data = lawmakers_api_committees_filter($committees_query);
+  $committees_data = notarios_api_committees_filter($committees_query);
 
   // Voting Record.
   $vote_query = array(
     'voter_ids.' . $bioguide_id . '__exists' => 'true',
   );
-  $vote_data = lawmakers_api_votes_filter($vote_query);
+  $vote_data = notarios_api_votes_filter($vote_query);
 
-  // Bills sponsored by Current lawmaker.
+  // Bills sponsored by Current notario.
   // @TODO: Get cosponsored cosponsor_ids__all
   // array_merge the sponsor and cosoponser
   $sponsored_bills_query = array(
     'sponsor_id__in' => $bioguide_id,
   );
-  $bills_data = lawmakers_api_bills_filter($sponsored_bills_query);
+  $bills_data = notarios_api_bills_filter($sponsored_bills_query);
 
   // Prepare content for theme.
   // @TODO: Cache results. (24 hrs ?)
@@ -73,42 +73,42 @@ function lawmakers_api_page_callback($entity_id) {
     'votes' => $vote_data,
   );
 
-  return theme('lawmakers_api', $content);
+  return theme('notarios_api', $content);
 
 }
 
 
-function lawmakers_api_legislators_by_zipcode($zipcode) {
+function notarios_api_notarios_by_zipcode($zipcode) {
   $sunlight_lab = new SunlightLabs();
-  $data = $sunlight_lab->byZipCode('legislators', $zipcode);
+  $data = $sunlight_lab->byZipCode('notarios', $zipcode);
   return $data;
 }
 
-function lawmakers_api_legislators_filter($query) {
+function notarios_api_notarios_filter($query) {
   $sublight_lab = new SunlightLabs();
-  $data = $sublight_lab->legislatorsFilter($query);
+  $data = $sublight_lab->notariosFilter($query);
   return $data;
 }
 
-function lawmakers_api_committees_filter($query) {
+function notarios_api_committees_filter($query) {
   $sunlight_lab = new SunlightLabs();
   $data = $sunlight_lab->committeesFilter($query);
   return $data;
 }
 
-function lawmakers_api_bills_filter($query, $is_search = FALSE) {
+function notarios_api_bills_filter($query, $is_search = FALSE) {
   $sunlight_lab = new SunlightLabs();
   $data = $sunlight_lab->billsFilter($query, $is_search);
   return $data;
 }
 
-function lawmakers_api_upcoming_bills_filter($query) {
+function notarios_api_upcoming_bills_filter($query) {
   $sunlight_lab = new SunlightLabs();
   $data = $sunlight_lab->upcomingBillsFilter($query);
   return $data;
 }
 
-function lawmakers_api_votes_filter($query) {
+function notarios_api_votes_filter($query) {
   $sunlight_lab = new SunlightLabs();
   $data = $sunlight_lab->votesFilter($query);
   return $data;
@@ -117,17 +117,17 @@ function lawmakers_api_votes_filter($query) {
 /**
  * Implements hook_theme().
  */
-function lawmakers_api_theme() {
+function notarios_api_theme() {
   $items = array();
-  $items['lawmakers_api'] = array(
+  $items['notarios_api'] = array(
     'variables' => array(
       'committiees' => NULL,
       'node' => NULL,
       'bills' => NULL,
       'votes' => NULL,
     ),
-    'file' => 'lawmakers-api.tpl.php',
-    'path' => drupal_get_path('module', 'lawmakers_api') . '/theme',
+    'file' => 'notarios-api.tpl.php',
+    'path' => drupal_get_path('module', 'notarios_api') . '/theme',
   );
 
   return $items;

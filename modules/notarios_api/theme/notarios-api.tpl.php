@@ -1,23 +1,23 @@
 <?php
 /**
  * @file
- * Theme file for NG Lawmakers API
+ * Theme file for NG Notarios API
  */
 
 /**
  * Implements theme_hook().
  *
- * Lawmakers Page.
+ * Notarios Page.
  */
-function theme_lawmakers_api(&$variables) {
+function theme_notarios_api(&$variables) {
   $output = '';
   $node = $variables['node'];
   $full_title = $node->title . ' ' . $node->firstname . ' ' . $node->lastname;
   drupal_set_title($full_title);
 
-  $lawmakers_image_size = '200x250';
+  $notarios_image_size = '200x250';
   $image_data = array(
-    'path' => drupal_get_path('module', 'lawmakers') . '/images/' . $lawmakers_image_size . '/' . $node->bioguide_id . '.jpg',
+    'path' => drupal_get_path('module', 'notarios') . '/images/' . $notarios_image_size . '/' . $node->bioguide_id . '.jpg',
   );
 
   $output .= '<div class="image" style="float: left; margin-right: 20px">' . theme('image', $image_data) . '</div>';

@@ -1,0 +1,497 @@
+<?php
+
+/**
+ * @file
+ * notarios.module
+ */
+
+// 50 items per page.
+define('TOTAL_ITEMS_PER_PAGE', 50);
+
+// Admin uri links.
+define('ADMIN_CONTENT_NOTARIOS_MANAGE_URI', 'admin/content/notarios/manage/');
+define('ADMIN_CONTENT_NOTARIOS_URI', 'admin/content/notarios');
+
+/**
+ * Implements hook_entity_info().
+ */
+function notarios_entity_info() {
+  $notarios_entity_info['notarios'] = array(
+    'label' => t('Notarios'),
+    'label callback' => 'notarios_label_callback',
+    'entity class' => 'Notarios',
+    'controller class' => 'NotariosController',
+    'base table' => 'notarios',
+    'uri callback' => 'notarios_uri',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'notarios_id',
+    ),
+    'uri callback' => 'entity_class_uri',
+    'load hook' => 'notarios_load',
+    'static cache' => TRUE,
+    'admin ui' => array(
+      'path' => 'admin/content/notarios',
+      'controller class' => 'NotariosUIController',
+      'file' => 'includes/notarios.admin.inc',
+    ),
+    'module' => 'notarios',
+    'access callback' => 'notarios_access_callback',
+    'bundles' => array(
+      'notarios' => array(
+        'label' => 'Notarios',
+        'admin' => array(
+          'path' => 'admin/structure/notarios/manage',
+          'access arguments' => array('administer notarios'),
+        ),
+      ),
+    ),
+    'views controller class' => 'EntityDefaultViewsController',
+  );
+
+  return $notarios_entity_info;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function notarios_menu() {
+  $items = array();
+
+  $items['notarios/%notarios'] = array(
+    'title' => 'Notarios',
+    'page callback' => 'notarios_view_entity',
+    'page arguments' => array(1),
+    'access callback' => 'notarios_access_menu_callback',
+    'access arguments' => array('view', 1),
+  );
+
+  $items['notarios/locate'] = array(
+    'page callback' => 'notarios_locate_callback',
+    'access arguments' => array('access content'),
+  );
+
+  $items['admin/content/notarios/bulk/delete/%'] = array(
+    'title' => 'Bulk Delete Notarios',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('notarios_bulk_delete', 5),
+    'access arguments' => array('administer notarios entities'),
+    'file' => 'includes/notarios.admin.inc',
+  );
+
+  $items['admin/content/notarios/bulk/import'] = array(
+    'title' => 'Import',
+    'description' => 'Bulk import from CSV file',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('notarios_bulk_import'),
+    'access arguments' => array('administer notarios entities'),
+    'file' => 'includes/notarios.admin.inc',
+  );
+
+  $items['admin/structure/notarios'] = array(
+    'title' => 'Notarios Fields',
+    'access arguments' => array('administer notarios entities'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Help function api data.
+ */
+function notarios_locate_callback() {
+  $params = drupal_get_query_parameters();
+
+  if (isset($params['state'])) {
+    $conditions = $params['state'];
+    $result = notarios_entity_query($conditions);
+    $data = notarios_load_multiple($result);
+    drupal_json_output($data);
+  }
+  elseif (isset($params['party']) && isset($params['chamber'])) {
+    $chamber = array('title' => $params['chamber']);
+    $party = array('party' => $params['party']);
+    $conditions = array_merge($party, $chamber);
+    $result = notarios_entity_query($conditions);
+    $data = notarios_load_multiple($result);
+    drupal_json_output($data);
+  }
+
+}
+
+/**
+ * Implements hook_permission().
+ */
+function notarios_permission() {
+  return array(
+    'administer notarios entities' => array(
+      'title' => t('Administer Notarios Entities'),
+      'description' => t('Allows a user to administer notario entities'),
+    ),
+    'view notarios entities' => array(
+      'title' => t('View Notarios Entity'),
+      'description' => t('Allows a user to view the notarios entities.'),
+    ),
+    'create notarios entities' => array(
+      'title' => t('Create Notarios Entities'),
+      'description' => t('Allows a user to create notarios entities.'),
+    ),
+    'edit notarios entities' => array(
+      'title' => t('Edit Notarios Entities'),
+      'description' => t('Allows a user to edit notarios entities.'),
+    ),
+    'delete notarios entities' => array(
+      'title' => t('Delete Notarios Entities'),
+      'description' => t('Allows a user to delete notarios entities.'),
+    ),
+    'use notarios bulk operations' => array(
+      'title' => t('Do bulk operations on Notarios entities'),
+      'description' => t('Allows a user to do bulk operations.'),
+    ),
+  );
+}
+
+/**
+ * Check access permission for Notarios Entity UI.
+ */
+function notarios_access_menu_callback($op, $notarios = NULL, $account = NULL) {
+  switch ($op) {
+    case 'view':
+      return user_access('view notarios entities', $account);
+
+    case 'create':
+      return user_access('create notarios entities', $account);
+
+    case 'update':
+      return user_access('edit notarios entities', $account);
+
+    case 'delete':
+      return user_access('delete notarios entities', $account);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Notarios access callback.
+ */
+function notarios_access_callback() {
+  if (user_is_anonymous() && !user_access('administer notarios entities')) {
+    return FALSE;
+  }
+  else {
+    return TRUE;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function notarios_theme() {
+  return array(
+    'notarios_full' => array(
+      'variables' => array('notarios' => NULL),
+      'file' => 'includes/notarios.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Helper function for custom queries.
+ */
+function notarios_entity_query($conditions = array()) {
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'notarios');
+
+  // Apply conditions.
+  foreach ($conditions as $key => $value) {
+    $query->propertyCondition($key, $value);
+  }
+
+  $result = $query->execute();
+
+  if (isset($result['notarios'])) {
+    $notarios = array_keys($result['notarios']);
+  }
+  else {
+    $notarios = array();
+  }
+
+  return $notarios;
+}
+
+/**
+ * Label callback for notarios entities, for menu router, etc.
+ */
+function notarios_label_callback($notarios, $type) {
+  return empty($notarios->username) ? 'Untitled Notario' : $notarios->username;
+}
+
+/**
+ * Saves Notario to database.
+ */
+function notarios_save(notarios $notarios) {
+  return $notarios->save();
+}
+
+/**
+ * View for /notarios/<notarios_id> page.
+ */
+function notarios_view_entity($notarios) {
+  $fullname = $notarios->firstname . ' ' . $notarios->lastname;
+  drupal_set_title($fullname);
+  // Path not entity.
+  $notarios_output = theme('notarios_full', array('notarios' => $notarios));
+  return $notarios_output;
+}
+
+/**
+ * Notarios custom entity class.
+ */
+class Notarios extends Entity {
+  /**
+   * Override defaultUri().
+   */
+  protected function defaultUri() {
+    return array('path' => 'notarios/' . $this->identifier());
+  }
+}
+
+/**
+ * Menu autoloader for /notarios.
+ */
+function notarios_load($notarios_id, $reset = FALSE) {
+  $notarios = notarios_load_multiple(array($notarios_id), array(), $reset);
+  return reset($notarios);
+}
+
+/**
+ * Load multiple notarios based on certain conditions.
+ */
+function notarios_load_multiple($notarios_ids = array(), $conditions = NULL, $reset = FALSE) {
+  return entity_load('notarios', $notarios_ids, $conditions, $reset);
+}
+
+/**
+ * Deletes a notario.
+ */
+function notarios_delete(notarios $notarios) {
+  $notarios->delete();
+}
+
+/**
+ * Delete multiple notarios.
+ */
+function notarios_delete_multiple(array $notarios_ids) {
+  entity_get_controller('notarios')->delete($notarios_ids);
+}
+
+/**
+ * Custom controller for the notarios entity.
+ */
+class NotariosController extends EntityAPIController {
+
+  /**
+   * Override the save method.
+   */
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (isset($entity->is_new)) {
+      $entity->created = REQUEST_TIME;
+    }
+
+    $entity->changed = REQUEST_TIME;
+    return parent::save($entity, $transaction);
+  }
+}
+
+/**
+ * Custom controller for the administrator UI.
+ */
+class NotariosUIController extends EntityDefaultUIController {
+
+  /**
+   * Override the menu hook for default ui controller.
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['title'] = t('Notarios');
+    $items[$this->path]['description'] = t('Manage notarios, including fields.');
+    $items[$this->path]['access callback'] = 'notarios_access_callback';
+    $items[$this->path]['access arguments'] = array('administer notarios entities');
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    return $items;
+  }
+
+  /**
+   * Admin form for searching and doing bulk operations.
+   */
+  public function overviewForm($form, &$form_state) {
+    $form['pager'] = array('#theme' => 'pager');
+
+    $header = array(
+      'notarios_id' => array('data' => t('Notarios ID'), 'field' => 'notarios_id'),
+      'username' => array('data' => t('Username'), 'field' => 'username'),
+      'operations' => array('data' => t('Operations'), 'field' => 'operations'),
+    );
+
+    $options = array();
+    $search_term = !empty($_GET['search']) ? $_GET['search'] : NULL;
+
+    $query = new EntityFieldQuery();
+    $query
+      ->entityCondition('entity_type', 'notarios');
+
+    if (!empty($search_term)) {
+      $query->propertyCondition('username', '%' . $search_term . '%', 'like');
+    }
+    // Check for sort order and sort key.
+    if (!empty($_GET['sort']) && !empty($_GET['order'])) {
+      $sort = strtoupper($_GET['sort']);
+      $order = strtolower($_GET['order']);
+      $order = str_replace(' ', '_', $order);
+      if ($order != 'operations') {
+        $query->propertyOrderBy($order, $sort);
+      }
+    }
+
+    $query->pager(TOTAL_ITEMS_PER_PAGE);
+
+    $result = $query->execute();
+    $notarios_results = !empty($result['notarios']) ? $result['notarios'] : array();
+    $notarios_array = !empty($notarios_results) ? notarios_load_multiple(array_keys($notarios_results)) : array();
+    foreach ($notarios_array as $notarios_id => $notarios) {
+      $options['notarios_id-' . $notarios_id] = array(
+        'notarios_id' => l($notarios->notarios_id, 'notarios/' . $notarios->notarios_id),
+        'username' => l($notarios->username, 'notarios/' . $notarios->notarios_id),
+        'operations' =>
+        l(t('View'), 'notarios/' . $notarios->notarios_id) . ' ' .
+        l(t('Edit'), ADMIN_CONTENT_NOTARIOS_MANAGE_URI . $notarios_id, array('query' => array('destination' => ADMIN_CONTENT_NOTARIOS_URI))) . ' ' .
+        l(t('Delete'), ADMIN_CONTENT_NOTARIOS_MANAGE_URI . $notarios_id . '/delete', array('attributes' => array('class' => array('notarios-delete-' . $notarios->notarios_id), ), 'query' => array('destination' => ADMIN_CONTENT_NOTARIOS_URI))),
+      );
+    }
+
+    $form['search'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Basic Search'),
+      '#collapsible' => TRUE,
+      '#collapsed' => !empty($search_term) ? FALSE : TRUE,
+    );
+
+    $form['search']['search_text'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Search Term'),
+      '#default_value' => !empty($search_term) ? $search_term : '',
+    );
+
+    $form['search']['search_submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Search'),
+    );
+
+    $form['bulk_operations'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Bulk Operations'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+
+    $form['bulk_operations']['operations'] = array(
+      '#type' => 'select',
+      '#options' => array(
+        0 => t('Select a bulk operation'),
+        'delete' => t('Delete selected notarios'),
+      ),
+    );
+
+    $form['bulk_operations']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Submit'),
+    );
+
+    $form['entities'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#attributes' => array('class' => array('entity-sort-table')),
+      '#empty' => t('There are no notarios.'),
+    );
+
+    return $form;
+  }
+
+  /**
+   * Form Submit method.
+   */
+  public function overviewFormSubmit($form, &$form_state) {
+    $values = $form_state['input'];
+    $notarios_ids = array();
+
+    if (!empty($values['entities'])) {
+      foreach ($values['entities'] as $index => $value) {
+        if (!empty($value)) {
+          $notarios_ids[] = str_replace('notarios_id-', '', $value);
+        }
+      }
+
+      switch ($values['operations']) {
+        case 'delete':
+          drupal_goto('admin/content/notarios/bulk/delete/' . implode('|', $notarios_ids));
+          break;
+      }
+    }
+
+    if (!empty($values['search_text'])) {
+      drupal_goto('admin/content/notarios', array('query' => array('search' => $values['search_text'])));
+    }
+  }
+
+}
+
+function _notarios_import($filepath) {
+  $items = array();
+  global $conf;
+
+  if (!empty($conf['asm_csv_columns'])) {
+    $csv_columns = $conf['asm_csv_columns'];
+  }
+  else {
+    $csv_columns = array(
+    	'Nom' => 'name',
+      'Cognoms' => 'surnames',
+      'Adreça' => 'address',
+      'Cod.Postal' => 'zip',
+      'Nom.Província' => 'province',
+      'Nom.Població' => 'city',
+      'Telèfon' => 'phone',
+      'Fax' => 'fax',
+      'Correu elec1' => 'email',
+      'últVoluntats' => 'ultVoluntats',
+    );
+  }
+
+  if (($handle = fopen($filepath, "r")) !== FALSE) {
+    $i = TRUE;
+    setlocale(LC_ALL, 'ca.ISO-8859-1');
+    while (($dataRow = fgetcsv($handle, 1000, ";", '"')) !== FALSE) {
+      if ($i) {
+        // Skip 1st. column.
+        $i = FALSE;
+        continue;
+      }
+      drush_log(print_r($row, TRUE));
+      $row = array_map('mb_convert_encoding', $dataRow, array('UTF-8'));
+      $trimmed_row = array_map('trim', array_values($row));
+      $notario_data = array_combine(array_values($csv_columns), $trimmed_row);
+      $notario = entity_create('notarios', $notario_data);
+      $username = $notario->name . '_' . $notario->surnames;
+      $notario->username = $username;
+      notarios_save($notario);
+    }
+    fclose($handle);
+  }
+
+  return $items;
+}
+

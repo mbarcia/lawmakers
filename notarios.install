@@ -1,0 +1,117 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for notarios
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function notarios_schema() {
+  $schema = array();
+
+  $schema['notarios'] = array(
+    'description' => 'Notarios table for Entity',
+    'fields' => array(
+      'notarios_id' => array(
+        'description' => 'Primary Key notario_id',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'username' => array(
+        'description' => 'Auto Generated Custom Username',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'name' => array(
+        'description' => 'Nom',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'surnames' => array(
+        'description' => 'Cognoms',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'address' => array(
+        'description' => 'Adreça',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'zipcode' => array(
+        'description' => 'Cod.Postal',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'province' => array(
+        'description' => 'Nom.Província',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'city' => array(
+        'description' => 'Nom.Població',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'phone' => array(
+        'description' => 'Telèfon',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'fax' => array(
+        'description' => 'Fax',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'email' => array(
+        'description' => 'Correo elec1',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'ultVoluntats' => array(
+        'description' => 'últVoluntats',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created' => array(
+        'description' => 'Created timestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'changed' => array(
+        'description' => 'Changed timestamp',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('notarios_id'),
+    'indexes' => array(
+      'search_idx' => array('name', 'surnames'),
+      'state_idx' => array('province'),
+      'username_idx' => array('username'),
+    ),
+  );
+  return $schema;
+}

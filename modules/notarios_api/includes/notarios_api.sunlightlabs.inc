@@ -8,7 +8,7 @@
 /**
  * Implements SunlightLabs class.
  */
-class SunlightLabs extends lawmakersApi {
+class SunlightLabs extends notariosApi {
 
   private $url = 'http://congress.api.sunlightfoundation.com/';
 
@@ -16,7 +16,7 @@ class SunlightLabs extends lawmakersApi {
    * Implements By latitude/longitude.
    *
    * @param string method
-   *   Method string legislators, districts
+   *   Method string notarios, districts
    *
    * @param int lat
    *   Latitude.
@@ -25,28 +25,28 @@ class SunlightLabs extends lawmakersApi {
    *   Longitude.
    */
   public function byLatLng($method, $lat, $lng) {
-    $apiUrl = $this->url . $method . '/locate?latitude=' . $lat . '&longitude=' . $lng .'&apikey=' . $this->lawmakers_api_key('sunlightlabs');
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . $method . '/locate?latitude=' . $lat . '&longitude=' . $lng .'&apikey=' . $this->notarios_api_key('sunlightlabs');
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
    * Implements By zip code.
    *
    * @param string method
-   *   Method string legislators, districts
+   *   Method string notarios, districts
    *
    * @param int zipcode
    *   Zip code.
    */
   public function byZipCode($method, $zipcode) {
-    $apiUrl = $this->url . $method . '/locate?zip=' . $zipcode .'&apikey=' . $this->lawmakers_api_key('sunlightlabs');
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . $method . '/locate?zip=' . $zipcode .'&apikey=' . $this->notarios_api_key('sunlightlabs');
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
-   * Implements legislators filtering on fields.
+   * Implements notarios filtering on fields.
    *
-   * Read API: http://sunlightlabs.github.io/congress/legislators.html
+   * Read API: http://sunlightlabs.github.io/congress/notarios.html
    *
    * @param array query
    *   Query array.
@@ -54,12 +54,12 @@ class SunlightLabs extends lawmakersApi {
    * @returns array
    *   Json decoded array.
    */
-  public function legislatorsFilter($query) {
+  public function notariosFilter($query) {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'legislators?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'notarios?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -77,8 +77,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'committees?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'committees?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -97,12 +97,12 @@ class SunlightLabs extends lawmakersApi {
       // throw warning
     }
     if ($is_search) {
-      $apiUrl = $this->url . 'bills/search?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&'. http_build_query($query);
+      $apiUrl = $this->url . 'bills/search?apikey=' . $this->notarios_api_key('sunlightlabs') .'&'. http_build_query($query);
     }
     else {
-      $apiUrl = $this->url . 'bills?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&'. http_build_query($query);
+      $apiUrl = $this->url . 'bills?apikey=' . $this->notarios_api_key('sunlightlabs') .'&'. http_build_query($query);
     }
-    return $this->lawmakers_api_response($apiUrl);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -120,8 +120,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'amendments?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'amendments?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -139,8 +139,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'nominations?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'nominations?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -158,8 +158,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'votes?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'votes?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -177,8 +177,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'floor_updates?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'floor_updates?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
   /**
@@ -196,8 +196,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'hearings?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($response->data);
+    $apiUrl = $this->url . 'hearings?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($response->data);
   }
 
   /**
@@ -215,8 +215,8 @@ class SunlightLabs extends lawmakersApi {
     if (!is_array($query)) {
       // throw warning
     }
-    $apiUrl = $this->url . 'upcoming_bills?apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
-    return $this->lawmakers_api_response($apiUrl);
+    $apiUrl = $this->url . 'upcoming_bills?apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
+    return $this->notarios_api_response($apiUrl);
   }
 
 }
@@ -235,7 +235,7 @@ class partyTime {
    * Read API: http://sunlightlabs.github.io/partytime-docs/
    *
    * @param string method
-   *   Method is a string event, lawmaker, host.
+   *   Method is a string event, notario, host.
    */
   public function event($method, $query) {
     if (empty($method)) {
@@ -243,13 +243,13 @@ class partyTime {
     }
 
     if (is_array($query)) {
-      $apiUrl = $this->url . $method . '/?format=json&apikey=' . $this->lawmakers_api_key('sunlightlabs') .'&' . http_build_query($query);
+      $apiUrl = $this->url . $method . '/?format=json&apikey=' . $this->notarios_api_key('sunlightlabs') .'&' . http_build_query($query);
     }
     else {
-      $apiUrl = $this->url . $method . '/'. $query .'/?format=json&apikey=' . $this->lawmakers_api_key('sunlightlabs');
+      $apiUrl = $this->url . $method . '/'. $query .'/?format=json&apikey=' . $this->notarios_api_key('sunlightlabs');
     }
 
-    return $this->lawmakers_api_response($apiUrl);
+    return $this->notarios_api_response($apiUrl);
   }
 
 }

@@ -1,0 +1,6 @@
+name = Notarios
+description = "Notario Entity"
+core = 7.x
+package = Notarios
+
+dependencies[] = entity
